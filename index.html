@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Drive — Intercity Student Transport</title>
+<meta name="description" content="Safe, reliable intercity transport for university students. Book your seat, pick your route, travel with confidence.">
+<link rel="icon" type="image/png" href="favicon.png">
+
+<link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+
+<div class="site-bg" aria-hidden="true">
+  <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <path class="route-path p1" d="M-50,620 C250,520 480,280 1250,120"/>
+    <path class="route-path p2" d="M-50,120 C300,280 720,600 1250,520"/>
+    <path class="route-path p3" d="M-50,420 C420,360 780,470 1250,400"/>
+    <circle class="bg-node" cx="250" cy="520" r="4"/>
+    <circle class="bg-node n2" cx="720" cy="600" r="4"/>
+    <circle class="bg-node n3" cx="780" cy="470" r="4"/>
+    <circle class="bg-node" cx="480" cy="280" r="4"/>
+  </svg>
+</div>
+
+<div id="app-loading"><img src="images/logo.png" class="loading-logo" alt="Big Drive"><div class="spinner"></div><p>Loading Big Drive…</p></div>
+<div id="app-error">
+  <h3>Couldn't load Big Drive</h3>
+  <p>There was a problem connecting to storage. Check your connection and try again.</p>
+  <button class="btn-primary" onclick="initApp()">Retry</button>
+</div>
+
+<div class="banner" id="storage-banner">Running in limited mode — some data may not sync across devices right now.</div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <img src="images/logo.png" class="logo-mark" alt="Big Drive">
+    </div>
+    <button class="nav-cta" onclick="scrollToRoutes()">Book a seat</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="wrap">
+      <div class="hero-eyebrow"><span class="dot"></span> Booking now for next semester</div>
+      <h1>Get home <span>safe</span>, get back <span>on time</span>.</h1>
+      <p>Big Drive is intercity transport built for students — predictable pricing, real luggage handling, and a seat you booked in advance, not a scramble at the park.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="scrollToRoutes()">Find your route →</button>
+        <button class="btn-ghost" onclick="scrollToTrack()">Track a booking</button>
+      </div>
+    </div>
+    <div class="ticker">
+      <div class="wrap"><div class="ticker-track" id="ticker-track"></div></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head"><div><div class="section-tag">How it works</div><h2>Three steps, no park touts</h2></div></div>
+      <div class="steps">
+        <div class="step-card"><div class="step-num">01</div><h3>Pick your route &amp; time</h3><p>Choose from the departure board below and lock in a seat before the day of travel.</p></div>
+        <div class="step-card"><div class="step-num">02</div><h3>Pay by transfer</h3><p>Send payment straight to the Big Drive account with your booking reference as the narration.</p></div>
+        <div class="step-card"><div class="step-num">03</div><h3>Show your ticket</h3><p>Your booking is saved and sent to Big Drive on WhatsApp instantly, and you get a ticket stub to show the driver.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="routes">
+    <div class="wrap">
+      <div class="section-head"><div><div class="section-tag">Departure board</div><h2>Where are you headed?</h2></div></div>
+      <div class="board" id="route-board"></div>
+      <div style="text-align:right;margin-top:10px;">
+        <span style="font-family:var(--mono);font-size:0.7rem;color:var(--slate-400);">JVS • Verified by Jerla</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="trust">
+    <div class="wrap">
+      <div class="trust-grid">
+        <div class="trust-card"><div class="n">2 free</div><div class="l">bags per seat</div></div>
+        <div class="trust-card"><div class="n">100%</div><div class="l">booked in advance</div></div>
+        <div class="trust-card"><div class="n">Fixed</div><div class="l">price, no haggling</div></div>
+        <div class="trust-card"><div class="n">Live</div><div class="l">status, any device</div></div>
+      </div>
+      <div style="text-align:center;margin-top:18px;">
+        <span class="jvs-badge" style="background:transparent;border:1px solid var(--navy-700);color:var(--slate-400);">JVS • Verified by Jerla</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="track">
+    <div class="wrap">
+      <div class="section-head"><div><div class="section-tag">Already booked?</div><h2>Track your booking</h2></div></div>
+      <div class="track-box">
+        <div class="field-row">
+          <div class="field"><label for="track-ref">Booking reference</label><input id="track-ref" placeholder="e.g. BD-4821"></div>
+          <div class="field"><label for="track-phone">Phone number used</label><input id="track-phone" placeholder="080..."></div>
+        </div>
+        <button class="btn-primary" onclick="trackBooking()">Look up ticket</button>
+        <div class="track-result" id="track-result"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div style="display:flex;align-items:center;gap:8px;"><img src="images/logo.png" alt="" style="width:22px;height:22px;">© <span id="year"></span> Big Drive. Safe travels, every time.</div>
+    <button class="settings-btn" onclick="openAdminGate()">Admin</button>
+  </div>
+</footer>
+
+<div class="modal-backdrop" id="booking-modal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-title">Book your seat</h3><button class="modal-close" onclick="closeBooking()">✕</button></div>
+    <div class="progress" id="progress-bar"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="admin-gate-modal">
+  <div class="modal">
+    <div class="modal-head"><h3>Admin sign-in</h3><button class="modal-close" onclick="closeAdminGate()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>PIN</label><input id="admin-pin-input" type="password" placeholder="Enter admin PIN"></div>
+      <div class="error-text" id="admin-pin-error">Incorrect PIN.</div>
+      <button class="btn-block" onclick="checkAdminPin()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="admin-modal">
+  <div class="modal wide">
+    <div class="modal-head"><h3 style="display:flex;align-items:center;gap:10px;"><img src="images/logo.png" alt="" style="width:24px;height:24px;">Admin dashboard</h3><button class="modal-close" onclick="closeAdmin()">✕</button></div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="tab-bookings" onclick="switchAdminTab('bookings')">Bookings</button>
+      <button class="admin-tab" id="tab-routes" onclick="switchAdminTab('routes')">Routes</button>
+      <button class="admin-tab" id="tab-settings" onclick="switchAdminTab('settings')">Settings</button>
+    </div>
+    <div class="modal-body" id="admin-body"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="trip-modal">
+  <div class="modal">
+    <div class="modal-head"><h3>Trip details — <span id="trip-modal-ref"></span></h3><button class="modal-close" onclick="closeTripDetails()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Driver name</label><input id="trip-driver"></div>
+      <div class="field-row">
+        <div class="field"><label>Bus number</label><input id="trip-bus"></div>
+        <div class="field"><label>Seat number</label><input id="trip-seat"></div>
+      </div>
+      <div class="field"><label>Pickup location</label><input id="trip-pickup"></div>
+      <button class="btn-block" onclick="saveTripDetails()">Save trip details</button>
+    </div>
+  </div>
+</div>
+
+<script src="scripts/script.js"></script>
+</body>
+</html>
