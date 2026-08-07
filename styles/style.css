@@ -71,6 +71,9 @@
   .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1080px;margin:0 auto;}
   .logo{display:flex;align-items:center;gap:10px;}
   .logo-mark{width:42px;height:42px;flex:none;object-fit:contain;}
+  .logo-text{display:flex;flex-direction:column;line-height:1.15;}
+  .logo-wordmark{font-family:var(--display);font-weight:700;font-size:1.05rem;letter-spacing:0.02em;color:var(--ink);}
+  .logo-tagline{font-family:var(--mono);font-size:0.62rem;color:var(--amber-400);letter-spacing:0.03em;}
   .nav-cta{
     background:var(--amber-400);color:var(--navy-950);border:none;
     padding:10px 20px;border-radius:100px;font-weight:600;font-size:0.9rem;
@@ -277,8 +280,9 @@
 
   footer{border-top:1px solid var(--navy-700);padding:36px 0;color:var(--slate-400);font-size:0.85rem;}
   .footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;align-items:center;}
-  .settings-btn{background:none;border:1px solid var(--navy-700);color:var(--slate-400);border-radius:8px;padding:8px 10px;font-size:0.8rem;}
+  .settings-btn{background:none;border:1px solid var(--navy-700);color:var(--slate-400);border-radius:8px;padding:8px 10px;font-size:0.8rem;position:relative;}
   .settings-btn:hover{border-color:var(--amber-400);color:var(--amber-400);}
+  #pending-badge{background:var(--coral-500);color:#fff;font-family:var(--mono);font-size:0.68rem;padding:2px 7px;border-radius:100px;margin-left:6px;}
 
   .admin-tabs{display:flex;gap:6px;padding:14px 24px 0;}
   .admin-tab{background:none;border:none;color:var(--slate-400);padding:10px 4px;font-size:0.9rem;font-weight:600;border-bottom:2px solid transparent;}

@@ -36,6 +36,10 @@
   <div class="header-inner">
     <div class="logo">
       <img src="images/logo.png" class="logo-mark" alt="Big Drive">
+      <div class="logo-text">
+        <span class="logo-wordmark">BIG DRIVE</span>
+        <span class="logo-tagline">Verified by JVS</span>
+      </div>
     </div>
     <button class="nav-cta" onclick="scrollToRoutes()">Book a seat</button>
   </div>
@@ -73,9 +77,6 @@
     <div class="wrap">
       <div class="section-head"><div><div class="section-tag">Departure board</div><h2>Where are you headed?</h2></div></div>
       <div class="board" id="route-board"></div>
-      <div style="text-align:right;margin-top:10px;">
-        <span style="font-family:var(--mono);font-size:0.7rem;color:var(--slate-400);">JVS • Verified by Jerla</span>
-      </div>
     </div>
   </section>
 
@@ -86,9 +87,6 @@
         <div class="trust-card"><div class="n">100%</div><div class="l">booked in advance</div></div>
         <div class="trust-card"><div class="n">Fixed</div><div class="l">price, no haggling</div></div>
         <div class="trust-card"><div class="n">Live</div><div class="l">status, any device</div></div>
-      </div>
-      <div style="text-align:center;margin-top:18px;">
-        <span class="jvs-badge" style="background:transparent;border:1px solid var(--navy-700);color:var(--slate-400);">JVS • Verified by Jerla</span>
       </div>
     </div>
   </section>
@@ -111,7 +109,7 @@
 <footer>
   <div class="wrap footer-row">
     <div style="display:flex;align-items:center;gap:8px;"><img src="images/logo.png" alt="" style="width:22px;height:22px;">© <span id="year"></span> Big Drive. Safe travels, every time.</div>
-    <button class="settings-btn" onclick="openAdminGate()">Admin</button>
+    <button class="settings-btn" onclick="openAdminGate()">Admin <span id="pending-badge" style="display:none;"></span></button>
   </div>
 </footer>
 

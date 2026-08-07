@@ -1,3 +1,12 @@
+function seedDates(n){
+  const out = [];
+  const today = new Date();
+  for(let i=1;i<=n;i++){
+    const d = new Date(today); d.setDate(d.getDate() + i);
+    out.push({ date: d.toISOString().slice(0,10), closed:false });
+  }
+  return out;
+}
 const DEFAULT_CONFIG = {
   whatsappNumbers: ["2348000000000"],
   adminPin: "2580",
@@ -6,14 +15,15 @@ const DEFAULT_CONFIG = {
   // every route's displayed direction is derived from this automatically.
   season: "resumption",
   // Durations sourced from real road-distance data for Ado-Ekiti (ABUAD's location). Prices are placeholders — update from Admin → Routes.
+  // availableDates are admin-controlled — customers only ever see dates the admin has opened. Seeded here as a starting example.
   routes: [
-    { id: "r1", city: "Lagos", price: 8500, duration: "4h 30m", times: ["07:00"] },
-    { id: "r2", city: "Benin City", price: 6000, duration: "3h 30m", times: ["07:00"] },
-    { id: "r3", city: "Warri", price: 9000, duration: "4h 45m", times: ["07:00"] },
-    { id: "r4", city: "Abuja", price: 12000, duration: "6h 30m", times: ["07:00"] }
+    { id: "r1", city: "Lagos", price: 8500, duration: "4h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) },
+    { id: "r2", city: "Benin City", price: 6000, duration: "3h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) },
+    { id: "r3", city: "Warri", price: 9000, duration: "4h 45m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) },
+    { id: "r4", city: "Abuja", price: 12000, duration: "6h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) }
   ],
   luggageOptions: [
-    { id: "l1", label: "Extra bag (beyond 2 free bags)", price: 10000 },
+    { id: "l1", label: "Extra bag (beyond 2 free bags per passenger)", price: 10000 },
     { id: "l2", label: "Fragile / special handling item", price: 8000 }
   ]
 };
@@ -24,7 +34,6 @@ function routeCities(r){
 const STATUS_LABELS = {
   pending: '🟡 Waiting for Payment Verification',
   confirmed: '✅ Confirmed',
-  completed: '🏁 Completed',
   cancelled: '❌ Cancelled'
 };
 function statusLabel(s){ return STATUS_LABELS[s] || s; }
@@ -94,6 +103,12 @@ function migrateConfig(cfg){
     cfg.whatsappNumbers = cfg.whatsappNumber ? [cfg.whatsappNumber] : [...DEFAULT_CONFIG.whatsappNumbers];
   }
   if(!cfg.season) cfg.season = DEFAULT_CONFIG.season;
+  if(cfg.routes){
+    cfg.routes.forEach(r => {
+      if(!r.seatCapacity) r.seatCapacity = 14;
+      if(!r.availableDates) r.availableDates = seedDates(5);
+    });
+  }
   return cfg;
 }
 function primaryWhatsapp(){ return (CONFIG.whatsappNumbers && CONFIG.whatsappNumbers[0]) || DEFAULT_CONFIG.whatsappNumbers[0]; }
@@ -119,6 +134,14 @@ function flagStorageIssue(){
   document.getElementById('storage-banner').classList.add('show');
 }
 
+function renderPendingBadge(){
+  const el = document.getElementById('pending-badge');
+  if(!el) return;
+  const count = BOOKINGS.filter(b => b.status === 'pending').length;
+  if(count > 0){ el.textContent = count; el.style.display = 'inline-block'; }
+  else { el.style.display = 'none'; }
+}
+
 async function initApp(){
   document.getElementById('app-error').style.display = 'none';
   document.getElementById('app-loading').style.display = 'flex';
@@ -129,6 +152,7 @@ async function initApp(){
     document.getElementById('year').textContent = new Date().getFullYear();
     renderTicker();
     renderRouteBoard();
+    renderPendingBadge();
   } catch(e){
     document.getElementById('app-loading').style.display = 'none';
     document.getElementById('app-error').style.display = 'flex';
@@ -160,7 +184,7 @@ function scrollToTrack(){ document.getElementById('track').scrollIntoView({behav
 function startBooking(routeId){
   const route = CONFIG.routes.find(r => r.id === routeId);
   const c = routeCities(route);
-  booking = { route, from: c.from, to: c.to, time:null, luggage:[], name:'', phone:'', emergencyContact:'', ref: genRef(), saving:false };
+  booking = { route, from: c.from, to: c.to, date:null, time:null, seats:1, luggage:[], name:'', phone:'', emergencyContact:'', ref: genRef(), saving:false };
   step = 0;
   document.getElementById('booking-modal').classList.add('open');
   renderStep();
@@ -168,7 +192,25 @@ function startBooking(routeId){
 function closeBooking(){ document.getElementById('booking-modal').classList.remove('open'); }
 function genRef(){ return 'BD-' + Math.floor(1000 + Math.random()*9000); }
 
-const TOTAL_STEPS = 5;
+function availableDatesFor(route){
+  const todayStr = new Date().toISOString().slice(0,10);
+  return (route.availableDates || [])
+    .filter(d => !d.closed && d.date >= todayStr)
+    .sort((a,b) => a.date < b.date ? -1 : 1)
+    .map(d => ({
+      value: d.date,
+      label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short' })
+    }));
+}
+function seatsBookedFor(routeId, date, time){
+  return BOOKINGS.filter(b => b.routeId === routeId && b.date === date && b.time === time && b.status !== 'cancelled')
+    .reduce((sum, b) => sum + (b.seatsBooked || 1), 0);
+}
+function seatsLeftFor(route, date, time){
+  return Math.max(0, (route.seatCapacity || 14) - seatsBookedFor(route.id, date, time));
+}
+
+const TOTAL_STEPS = 6;
 function updateProgress(){
   const bar = document.getElementById('progress-bar');
   bar.innerHTML = '';
@@ -184,11 +226,11 @@ function luggageTotal(){
     return sum + (opt ? opt.price : 0);
   }, 0);
 }
-function grandTotal(){ return (booking.route ? booking.route.price : 0) + luggageTotal(); }
+function grandTotal(){ return (booking.route ? booking.route.price * booking.seats : 0) + luggageTotal(); }
 
 function ticketMarkup(b, opts){
   opts = opts || {};
-  const showTrip = (b.status === 'confirmed' || b.status === 'completed') && (b.driver || b.busNumber || b.seat || b.pickup);
+  const showTrip = b.status === 'confirmed' && (b.driver || b.busNumber || b.seat || b.pickup);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(b.ref)}`;
   return `
     <div class="ticket"${opts.maxWidth ? ` style="max-width:${opts.maxWidth}px;"` : ''}>
@@ -199,8 +241,10 @@ function ticketMarkup(b, opts){
         </div>
         <div class="ticket-route"><span class="city">${b.from}</span><span class="arrow">✈ →</span><span class="city">${b.to}</span></div>
         <div class="ticket-grid">
+          <div><div class="k">Travel date</div><div class="v">${b.date || '—'}</div></div>
           <div><div class="k">Departure</div><div class="v">${b.time}</div></div>
           <div><div class="k">Passenger</div><div class="v">${b.name}</div></div>
+          <div><div class="k">Seats</div><div class="v">${b.seatsBooked || 1}</div></div>
         </div>
         ${showTrip ? `
         <div class="ticket-grid" style="margin-top:10px;">
@@ -209,7 +253,7 @@ function ticketMarkup(b, opts){
           ${b.seat ? `<div><div class="k">Seat</div><div class="v">${b.seat}</div></div>` : ''}
           ${b.pickup ? `<div><div class="k">Pickup</div><div class="v">${b.pickup}</div></div>` : ''}
         </div>` : ''}
-        ${(b.status==='confirmed'||b.status==='completed') ? `<img src="${qrUrl}" alt="Ticket QR code" style="margin-top:12px;border-radius:6px;" width="90" height="90">` : ''}
+        ${b.status==='confirmed' ? `<img src="${qrUrl}" alt="Ticket QR code" style="margin-top:12px;border-radius:6px;" width="90" height="90">` : ''}
       </div>
       <div class="ticket-perf"></div>
       <div class="ticket-stub"><span class="ticket-ref">${b.ref}</span><span class="ticket-status ${b.status}">${statusLabel(b.status)}</span></div>
@@ -223,23 +267,50 @@ function renderStep(){
 
   if(step === 0){
     title.textContent = `${booking.from} → ${booking.to}`;
+    const dates = availableDatesFor(booking.route);
     body.innerHTML = `
-      <div class="field"><label>Choose a departure time</label>
-        <div class="time-pills">${booking.route.times.map(t => `<button class="pill ${booking.time===t?'selected':''}" onclick="selectTime('${t}')">${t}</button>`).join('')}</div>
+      <div class="field"><label>Choose a travel date</label>
+        ${dates.length ? `<div class="time-pills">${dates.map(d => `<button class="pill ${booking.date===d.value?'selected':''}" onclick="selectDate('${d.value}')">${d.label}</button>`).join('')}</div>`
+          : `<p style="color:var(--slate-400);font-size:0.88rem;">No travel dates are open for this route yet — check back soon or contact Big Drive directly.</p>`}
       </div>
-      <button class="btn-block" ${booking.time?'':'disabled'} onclick="nextStep()">Continue</button>`;
+      ${booking.date ? `
+      <div class="field"><label>Choose a departure time</label>
+        <div class="time-pills">${booking.route.times.map(t => {
+          const left = seatsLeftFor(booking.route, booking.date, t);
+          const full = left <= 0;
+          return `<button class="pill ${booking.time===t?'selected':''}" ${full?'disabled style="opacity:0.4;cursor:not-allowed;"':''} onclick="${full?'':`selectTime('${t}')`}">${t}${full ? ' — full' : (left <= 4 ? ` · ${left} left` : '')}</button>`;
+        }).join('')}</div>
+      </div>` : ''}
+      <button class="btn-block" ${(booking.date && booking.time)?'':'disabled'} onclick="nextStep()">Continue</button>`;
   } else if(step === 1){
+    title.textContent = 'Number of seats';
+    const left = seatsLeftFor(booking.route, booking.date, booking.time);
+    body.innerHTML = `
+      <div class="field">
+        <label>How many seats do you need?</label>
+        <div style="display:flex;align-items:center;gap:16px;justify-content:center;padding:20px 0;">
+          <button class="pill" style="width:44px;height:44px;font-size:1.2rem;" onclick="changeSeats(-1)">−</button>
+          <span style="font-family:var(--mono);font-size:1.8rem;color:var(--amber-400);min-width:40px;text-align:center;">${booking.seats}</span>
+          <button class="pill" style="width:44px;height:44px;font-size:1.2rem;" onclick="changeSeats(1)">+</button>
+        </div>
+        <p style="color:var(--slate-400);font-size:0.82rem;text-align:center;">${left} seat${left===1?'':'s'} left on this departure</p>
+      </div>
+      <div class="summary-line total"><span>Subtotal</span><span>₦${(booking.route.price * booking.seats).toLocaleString()}</span></div>
+      <button class="btn-block" onclick="nextStep()">Continue</button>
+      <button class="btn-back" onclick="prevStep()">← Back</button>`;
+  } else if(step === 2){
     title.textContent = 'Luggage';
     body.innerHTML = `
+      <div class="narration-alert" style="border-color:var(--good);background:rgba(76,175,125,0.1);color:#8fd6ac;">✓ Included: 2 free bags per passenger (${booking.seats * 2} bags total for ${booking.seats} seat${booking.seats===1?'':'s'})</div>
       <div class="option-list">${CONFIG.luggageOptions.map(o => `
         <label class="option ${booking.luggage.includes(o.id)?'selected':''}">
           <input type="checkbox" ${booking.luggage.includes(o.id)?'checked':''} onchange="toggleLuggage('${o.id}')">
           <span class="desc">${o.label}</span><span class="price">+₦${o.price.toLocaleString()}</span>
         </label>`).join('')}</div>
-      <p style="color:var(--slate-400);font-size:0.85rem;margin-top:14px;">First two bags are free. Only select what applies beyond that.</p>
+      <p style="color:var(--slate-400);font-size:0.85rem;margin-top:14px;">Only select extras beyond what's included above.</p>
       <button class="btn-block" onclick="nextStep()">Continue</button>
       <button class="btn-back" onclick="prevStep()">← Back</button>`;
-  } else if(step === 2){
+  } else if(step === 3){
     title.textContent = 'Your details';
     body.innerHTML = `
       <div class="field"><label>Full name</label><input id="f-name" value="${booking.name}" placeholder="As on your student ID"></div>
@@ -248,10 +319,10 @@ function renderStep(){
       <div class="error-text" id="details-error">Please fill in your name and phone number.</div>
       <button class="btn-block" onclick="submitDetails()">Continue to payment</button>
       <button class="btn-back" onclick="prevStep()">← Back</button>`;
-  } else if(step === 3){
+  } else if(step === 4){
     title.textContent = 'Payment';
     body.innerHTML = `
-      <div class="summary-line"><span>${booking.from} → ${booking.to}, ${booking.time}</span><span>₦${booking.route.price.toLocaleString()}</span></div>
+      <div class="summary-line"><span>${booking.from} → ${booking.to}, ${booking.date} at ${booking.time} · ${booking.seats} seat${booking.seats===1?'':'s'}</span><span>₦${(booking.route.price * booking.seats).toLocaleString()}</span></div>
       ${booking.luggage.map(id => {
         const o = CONFIG.luggageOptions.find(x=>x.id===id);
         return `<div class="summary-line"><span>${o.label}</span><span>₦${o.price.toLocaleString()}</span></div>`;
@@ -264,20 +335,30 @@ function renderStep(){
         <div class="row"><span>Narration (important)</span><b>${booking.ref}</b></div>
       </div>
       <div class="narration-alert">⚠️ Use <b>${booking.ref}</b> as your transfer narration/description — this is how we match your payment to your booking.</div>
-      <p style="color:var(--slate-400);font-size:0.85rem;">Once you've transferred the total above, tap below. Your booking will be sent to Big Drive on WhatsApp and marked as waiting for payment verification.</p>
+      <p style="color:var(--slate-400);font-size:0.85rem;">Once you've transferred the total above, tap below. Your booking will be saved and marked as waiting for payment verification.</p>
       <button class="btn-block" id="confirm-pay-btn" onclick="confirmPayment()">I've sent the transfer</button>
       <button class="btn-back" onclick="prevStep()">← Back</button>`;
-  } else if(step === 4){
+  } else if(step === 5){
     title.textContent = 'Your ticket';
     body.innerHTML = `
-      ${ticketMarkup({ ref: booking.ref, from: booking.from, to: booking.to, time: booking.time, name: booking.name, status: 'pending' })}
+      ${ticketMarkup({ ref: booking.ref, from: booking.from, to: booking.to, date: booking.date, time: booking.time, name: booking.name, seatsBooked: booking.seats, status: 'pending' })}
       <p style="color:var(--slate-400);font-size:0.85rem;margin-top:16px;">Screenshot this ticket. You can look it up anytime with reference <b style="color:var(--amber-400);">${booking.ref}</b> under "Track your booking" — from any device.</p>
-      ${!STORAGE_OK ? `<p style="color:var(--bad);font-size:0.8rem;">Note: this booking could not be synced to shared storage. Make sure your WhatsApp message went through, as that's the backup record.</p>` : ''}
-      <button class="btn-block" onclick="closeBooking(); renderRouteBoard();">Done</button>`;
+      ${!STORAGE_OK ? `<p style="color:var(--bad);font-size:0.8rem;">Note: this booking could not be synced to shared storage. Make sure it reaches Big Drive on WhatsApp below, since that's the backup record.</p>` : ''}
+      <button class="btn-block" onclick="sendWhatsapp()">📲 Send Booking Details on WhatsApp</button>
+      <button class="btn-block secondary" onclick="closeBooking(); renderRouteBoard();">Done</button>`;
   }
 }
 
+function selectDate(d){ booking.date = d; booking.time = null; renderStep(); }
 function selectTime(t){ booking.time = t; renderStep(); }
+function changeSeats(delta){
+  const left = seatsLeftFor(booking.route, booking.date, booking.time);
+  const next = booking.seats + delta;
+  if(next < 1) return;
+  if(next > left) return;
+  booking.seats = next;
+  renderStep();
+}
 function toggleLuggage(id){
   const i = booking.luggage.indexOf(id);
   if(i>-1) booking.luggage.splice(i,1); else booking.luggage.push(id);
@@ -306,29 +387,52 @@ async function confirmPayment(){
       <p style="color:var(--slate-400);font-size:0.9rem;text-align:center;">Submitting your booking for payment verification…</p>
     </div>`;
 
+  // Final capacity check against the freshest data available, to catch the rare case
+  // where someone else filled the last seat between this student picking a time and
+  // tapping "I've sent the transfer".
+  try{ BOOKINGS = await loadBookings(); } catch(e){ /* fall through with whatever we have in memory */ }
+  if(seatsLeftFor(booking.route, booking.date, booking.time) < booking.seats){
+    document.getElementById('modal-body').innerHTML = `
+      <p style="color:var(--bad);">Sorry — there aren't enough seats left on that departure for your party. Please go back and adjust.</p>
+      <button class="btn-block secondary" onclick="step=0; renderStep();">← Choose another slot</button>`;
+    return;
+  }
+
   const record = {
-    ref: booking.ref, from: booking.from, to: booking.to, time: booking.time,
+    ref: booking.ref, routeId: booking.route.id, from: booking.from, to: booking.to,
+    travelDate: booking.date, date: booking.date, time: booking.time,
+    seatsBooked: booking.seats, seatNumbers: [],
     name: booking.name, phone: booking.phone,
     emergencyContact: booking.emergencyContact, luggage: booking.luggage, total: grandTotal(),
-    status: 'pending', createdAt: new Date().toISOString(),
-    driver: '', busNumber: '', seat: '', pickup: ''
+    status: 'pending', bookingDate: new Date().toISOString(), createdAt: new Date().toISOString(),
+    driver: '', busNumber: '', seat: '', pickup: '',
+    vehicleId: null, tripId: null, driverId: null
   };
   BOOKINGS.push(record);
   await persistBookings();
+  booking.savedRecord = record;
+  renderPendingBadge();
 
+  setTimeout(() => { nextStep(); }, 500);
+}
+
+function sendWhatsapp(){
+  const r = booking.savedRecord || booking;
+  const bookedDate = new Date(r.bookingDate || Date.now());
   const msg = [
     `NEW BOOKING — ${booking.ref}`,
-    `Route: ${booking.from} → ${booking.to} (${booking.time})`,
+    `Route: ${booking.from} → ${booking.to}`,
+    `Travel date: ${booking.date}`,
+    `Departure: ${booking.time}`,
     `Passenger: ${booking.name}`,
     `Phone: ${booking.phone}`,
+    `Seats: ${booking.seats}`,
     booking.emergencyContact ? `Emergency contact: ${booking.emergencyContact}` : null,
-    booking.luggage.length ? `Luggage add-ons: ${booking.luggage.map(id=>CONFIG.luggageOptions.find(o=>o.id===id).label).join(', ')}` : null,
+    booking.luggage.length ? `Luggage: ${booking.luggage.map(id=>CONFIG.luggageOptions.find(o=>o.id===id).label).join(', ')}` : null,
     `Total: ₦${grandTotal().toLocaleString()}`,
     `Reference: ${booking.ref}`
   ].filter(Boolean).join('\n');
   window.open(`https://wa.me/${primaryWhatsapp()}?text=${encodeURIComponent(msg)}`, '_blank');
-
-  setTimeout(() => { nextStep(); }, 900);
 }
 
 async function trackBooking(){
@@ -386,48 +490,107 @@ function switchAdminTab(tab){
 }
 
 let bookingSearch = '';
+let filterRouteId = '';
+let filterDate = '';
 function renderAdminBookings(){
   const body = document.getElementById('admin-body');
   const filtered = BOOKINGS.filter(b => {
+    if(filterRouteId && b.routeId !== filterRouteId) return false;
+    if(filterDate && b.date !== filterDate) return false;
     if(!bookingSearch) return true;
     const q = bookingSearch.toLowerCase();
     return b.ref.toLowerCase().includes(q) || b.name.toLowerCase().includes(q) || b.phone.includes(q);
   }).slice().reverse();
 
+  const datesForRoute = filterRouteId
+    ? [...new Set(BOOKINGS.filter(b => b.routeId === filterRouteId).map(b => b.date))].sort()
+    : [];
+  const pendingCount = BOOKINGS.filter(b => b.status === 'pending').length;
+
   body.innerHTML = `
+    ${pendingCount > 0 ? `<div class="narration-alert" style="margin-bottom:14px;">🔔 ${pendingCount} pending booking${pendingCount===1?'':'s'} waiting for payment verification</div>` : ''}
     <div class="admin-toolbar">
+      <select onchange="filterRouteId=this.value; filterDate=''; renderAdminBookings();">
+        <option value="">All routes</option>
+        ${CONFIG.routes.map(r => { const c = routeCities(r); return `<option value="${r.id}" ${filterRouteId===r.id?'selected':''}>${c.from} → ${c.to}</option>`; }).join('')}
+      </select>
+      ${filterRouteId ? `
+      <select onchange="filterDate=this.value; renderAdminBookings();">
+        <option value="">All dates</option>
+        ${datesForRoute.map(d => `<option value="${d}" ${filterDate===d?'selected':''}>${d}</option>`).join('')}
+      </select>` : ''}
       <input placeholder="Search by ref, name, or phone" value="${bookingSearch}" oninput="onSearchInput(this.value)">
-      <button class="refresh-btn" onclick="refreshAdminBookings()">↻ Refresh</button>
+      <button class="refresh-btn" id="refresh-btn" onclick="refreshAdminBookings()"><span id="refresh-icon">↻</span> Refresh</button>
       <span class="save-note" id="admin-save-note">Saved</span>
     </div>
-    ${filtered.length === 0 ? `<div class="empty-state">No bookings yet.</div>` : `
+    ${filtered.length === 0 ? `<div class="empty-state">No bookings ${filterRouteId||filterDate||bookingSearch ? 'match this filter' : 'yet'}.</div>` : `
     <table class="booking-table">
-      <thead><tr><th>Ref</th><th>Route</th><th>Passenger</th><th>Total</th><th>Status</th><th>Trip</th></tr></thead>
+      <thead><tr><th>Ref</th><th>Route</th><th>Passenger</th><th>Seats</th><th>Total</th><th>Status</th><th>Trip</th></tr></thead>
       <tbody>
         ${filtered.map(b => `
           <tr>
             <td class="mono">${b.ref}</td>
-            <td>${b.from} → ${b.to}<br><span style="color:var(--slate-400);font-size:0.78rem;">${b.time}</span></td>
+            <td>${b.from} → ${b.to}<br><span style="color:var(--slate-400);font-size:0.78rem;">${b.date || '—'}, ${b.time}</span></td>
             <td>${b.name}<br><span style="color:var(--slate-400);font-size:0.78rem;">${b.phone}</span></td>
+            <td class="mono">${b.seatsBooked || 1}</td>
             <td class="mono">₦${b.total.toLocaleString()}</td>
             <td>
               <select class="status-select" onchange="updateBookingStatus('${b.ref}', this.value)">
-                ${['pending','confirmed','completed','cancelled'].map(s => `<option value="${s}" ${b.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
+                ${['pending','confirmed','cancelled'].map(s => `<option value="${s}" ${b.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
               </select>
             </td>
             <td><button class="refresh-btn" onclick="openTripDetails('${b.ref}')">${b.driver || b.busNumber ? 'Edit' : 'Assign'}</button></td>
           </tr>`).join('')}
       </tbody>
     </table>`}
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      ${(filterRouteId || filterDate || bookingSearch) ? `<button class="refresh-btn" style="color:var(--coral-500);border-color:var(--coral-500);" onclick="clearFilteredBookings()">Clear these bookings (${filtered.length})</button>` : ''}
+      <button class="refresh-btn" style="color:var(--coral-500);border-color:var(--coral-500);" onclick="clearAllBookings()">Clear ALL bookings</button>
+    </div>
   `;
 }
 function onSearchInput(val){ bookingSearch = val; renderAdminBookings(); }
 
+async function clearFilteredBookings(){
+  const toRemove = new Set(BOOKINGS.filter(b => {
+    if(filterRouteId && b.routeId !== filterRouteId) return false;
+    if(filterDate && b.date !== filterDate) return false;
+    if(bookingSearch){
+      const q = bookingSearch.toLowerCase();
+      if(!(b.ref.toLowerCase().includes(q) || b.name.toLowerCase().includes(q) || b.phone.includes(q))) return false;
+    }
+    return true;
+  }).map(b => b.ref));
+  if(toRemove.size === 0) return;
+  if(!confirm(`Are you sure you want to clear these ${toRemove.size} booking(s)? This action cannot be undone.`)) return;
+  BOOKINGS = BOOKINGS.filter(b => !toRemove.has(b.ref));
+  await persistBookings();
+  renderPendingBadge();
+  renderAdminBookings();
+}
+async function clearAllBookings(){
+  if(!confirm(`Are you sure you want to clear ALL ${BOOKINGS.length} booking(s)? This action cannot be undone.`)) return;
+  if(!confirm(`This will permanently delete every booking in the system. Type-confirm by clicking OK one more time to proceed.`)) return;
+  BOOKINGS = [];
+  await persistBookings();
+  renderPendingBadge();
+  renderAdminBookings();
+}
+
 async function refreshAdminBookings(){
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  if(btn) btn.disabled = true;
+  if(icon) icon.style.animation = 'spin 0.7s linear infinite';
   try{
     BOOKINGS = await loadBookings();
+    renderPendingBadge();
     if(adminTab === 'bookings') renderAdminBookings();
-  } catch(e){ }
+  } catch(e){
+  } finally {
+    if(btn) btn.disabled = false;
+    if(icon) icon.style.animation = '';
+  }
 }
 
 async function updateBookingStatus(ref, status){
@@ -435,6 +598,7 @@ async function updateBookingStatus(ref, status){
   if(!b) return;
   b.status = status;
   const ok = await persistBookings();
+  renderPendingBadge();
   const note = document.getElementById('admin-save-note');
   if(note){ note.textContent = ok ? 'Saved' : 'Save failed — retry'; note.classList.add('show'); setTimeout(()=>note.classList.remove('show'), 1500); }
 }
@@ -484,6 +648,7 @@ function renderAdminRoutes(){
       <div class="field"><label>Duration</label><input id="new-route-duration" placeholder="4h 30m"></div>
       <div class="field"><label>Times (comma separated, 24h)</label><input id="new-route-times" placeholder="07:00"></div>
     </div>
+    <div class="field"><label>Seats per departure</label><input id="new-route-capacity" type="number" value="14"></div>
     <button class="btn-block secondary" onclick="addRoute()">+ Add route</button>
   `;
   renderRouteAdminList();
@@ -494,14 +659,68 @@ async function changeSeason(val){
   renderTicker();
   renderRouteBoard();
 }
+let expandedRouteId = null;
+function toggleRouteDates(id){ expandedRouteId = expandedRouteId === id ? null : id; renderRouteAdminList(); }
 function renderRouteAdminList(){
   const el = document.getElementById('route-admin-list');
   if(!CONFIG.routes.length){ el.innerHTML = `<p style="color:var(--slate-400);font-size:0.85rem;">No routes yet.</p>`; return; }
-  el.innerHTML = CONFIG.routes.map(r => { const c = routeCities(r); return `
-    <div class="route-admin-row">
-      <span>${c.from} → ${c.to} · ₦${r.price.toLocaleString()} · ${r.times.join(', ')}</span>
-      <button class="del-btn" onclick="removeRoute('${r.id}')">Remove</button>
+  el.innerHTML = CONFIG.routes.map(r => { const c = routeCities(r); const dates = (r.availableDates||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+    return `
+    <div class="route-admin-row" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="flex:1;">${c.from} → ${c.to} · ₦${r.price.toLocaleString()} · ${r.times.join(', ')} · <input type="number" value="${r.seatCapacity||14}" style="width:52px;background:var(--navy-950);border:1px solid var(--navy-600);color:var(--ink);border-radius:6px;padding:2px 6px;" onchange="updateCapacity('${r.id}', this.value)"> seats</span>
+        <button class="refresh-btn" onclick="toggleRouteDates('${r.id}')">${expandedRouteId===r.id ? 'Hide dates' : `Dates (${dates.filter(d=>!d.closed).length})`}</button>
+        <button class="del-btn" onclick="removeRoute('${r.id}')">Remove</button>
+      </div>
+      ${expandedRouteId===r.id ? `
+      <div style="margin-top:10px;padding:10px;background:var(--navy-950);border-radius:8px;">
+        ${dates.length === 0 ? `<p style="color:var(--slate-400);font-size:0.82rem;">No travel dates open yet.</p>` : dates.map(d => `
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;">
+            <span style="flex:1;${d.closed?'text-decoration:line-through;color:var(--slate-400);':''}">${d.date}</span>
+            <button class="refresh-btn" onclick="toggleDateClosed('${r.id}','${d.date}')">${d.closed ? 'Reopen' : 'Close'}</button>
+            <button class="del-btn" onclick="removeRouteDate('${r.id}','${d.date}')">Remove</button>
+          </div>`).join('')}
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <input type="date" id="add-date-${r.id}" style="flex:1;background:var(--navy-950);border:1px solid var(--navy-600);color:var(--ink);border-radius:6px;padding:6px;">
+          <button class="refresh-btn" onclick="addRouteDate('${r.id}')">+ Add date</button>
+        </div>
+      </div>` : ''}
     </div>`; }).join('');
+}
+async function addRouteDate(routeId){
+  const input = document.getElementById('add-date-'+routeId);
+  const val = input.value;
+  if(!val) return;
+  const r = CONFIG.routes.find(x => x.id === routeId);
+  if(!r) return;
+  if(!r.availableDates) r.availableDates = [];
+  if(!r.availableDates.some(d => d.date === val)) r.availableDates.push({ date: val, closed:false });
+  input.value = '';
+  await persistConfig();
+  renderRouteAdminList();
+  renderRouteBoard();
+}
+async function toggleDateClosed(routeId, date){
+  const r = CONFIG.routes.find(x => x.id === routeId);
+  if(!r) return;
+  const d = (r.availableDates||[]).find(x => x.date === date);
+  if(!d) return;
+  d.closed = !d.closed;
+  await persistConfig();
+  renderRouteAdminList();
+}
+async function removeRouteDate(routeId, date){
+  const r = CONFIG.routes.find(x => x.id === routeId);
+  if(!r) return;
+  r.availableDates = (r.availableDates||[]).filter(d => d.date !== date);
+  await persistConfig();
+  renderRouteAdminList();
+}
+async function updateCapacity(id, val){
+  const r = CONFIG.routes.find(x => x.id === id);
+  if(!r) return;
+  r.seatCapacity = Math.max(1, parseInt(val, 10) || 14);
+  await persistConfig();
 }
 async function removeRoute(id){
   CONFIG.routes = CONFIG.routes.filter(r => r.id !== id);
@@ -515,10 +734,12 @@ async function addRoute(){
   const price = parseInt(document.getElementById('new-route-price').value, 10);
   const duration = document.getElementById('new-route-duration').value.trim();
   const times = document.getElementById('new-route-times').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const seatCapacity = Math.max(1, parseInt(document.getElementById('new-route-capacity').value, 10) || 14);
   if(!city || !price || !times.length){ alert('Please fill in city, price and at least one time.'); return; }
-  CONFIG.routes.push({ id: 'r' + Date.now(), city, price, duration: duration || '—', times });
+  CONFIG.routes.push({ id: 'r' + Date.now(), city, price, duration: duration || '—', times, seatCapacity, availableDates: seedDates(5) });
   await persistConfig();
   ['new-route-city','new-route-price','new-route-duration','new-route-times'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-route-capacity').value = '14';
   renderRouteAdminList();
   renderRouteBoard();
   renderTicker();
