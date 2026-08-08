@@ -1,0 +1,75 @@
+/* ============================================================
+   Admin dashboard — full-page layout styles.
+   Shares design tokens (colors, fonts, .field/.btn-block/etc.)
+   with styles/style.css, loaded first. This file only adds
+   what's specific to the admin page's own layout.
+   ============================================================ */
+
+body.admin-body{ min-height:100vh; }
+
+/* ---------- PIN gate ---------- */
+.admin-gate{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.admin-gate-card{
+  background:var(--navy-800); border:1px solid var(--navy-700); border-radius:16px;
+  padding:36px 32px; width:100%; max-width:360px; text-align:center;
+}
+.admin-gate-logo{ width:64px; height:64px; margin-bottom:16px; }
+.admin-gate-card h1{ font-family:var(--display); font-size:1.3rem; margin:0 0 6px; }
+.admin-gate-card .settings-hint{ margin-bottom:20px; }
+.admin-gate-card input{
+  width:100%; background:var(--navy-950); border:1px solid var(--navy-600); border-radius:8px;
+  padding:12px; color:var(--ink); font-size:1rem; text-align:center; letter-spacing:0.3em; margin-bottom:10px;
+}
+.admin-back-link{ display:inline-block; margin-top:16px; color:var(--slate-400); font-size:0.85rem; text-decoration:none; }
+.admin-back-link:hover{ color:var(--amber-400); }
+
+/* ---------- Header / nav ---------- */
+.admin-header{ position:sticky; top:0; z-index:40; background:rgba(16,19,42,0.95); backdrop-filter:blur(8px); border-bottom:1px solid var(--navy-700); }
+.admin-header-inner{ max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+.admin-brand{ display:flex; align-items:center; gap:10px; text-decoration:none; flex:none; }
+.admin-nav{ display:flex; gap:6px; flex:1; flex-wrap:wrap; }
+.admin-nav-btn{ background:none; border:1px solid transparent; color:var(--slate-400); padding:8px 14px; border-radius:8px; font-size:0.88rem; font-weight:600; }
+.admin-nav-btn:hover{ color:var(--ink); }
+.admin-nav-btn.active{ background:var(--navy-700); color:var(--amber-400); border-color:var(--navy-600); }
+.pending-badge-admin{ background:var(--coral-500); color:#fff; font-family:var(--mono); font-size:0.75rem; padding:5px 10px; border-radius:100px; flex:none; }
+
+/* ---------- Main content ---------- */
+.admin-main{ max-width:1200px; margin:0 auto; padding:28px 24px 60px; }
+.admin-breadcrumb{ font-family:var(--mono); font-size:0.8rem; color:var(--slate-400); margin-bottom:20px; }
+.admin-breadcrumb a{ color:var(--amber-400); text-decoration:none; cursor:pointer; }
+.admin-breadcrumb a:hover{ text-decoration:underline; }
+
+.admin-section-title{ font-family:var(--display); font-size:1.5rem; margin:0 0 18px; }
+
+/* ---------- Route / date card grids ---------- */
+.admin-card-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
+.admin-card{
+  background:var(--navy-800); border:1px solid var(--navy-700); border-radius:14px; padding:20px;
+  cursor:pointer; transition:border-color 0.15s, transform 0.15s;
+}
+.admin-card:hover{ border-color:var(--amber-400); transform:translateY(-2px); }
+.admin-card .route-line-mini{ display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700; font-size:1.1rem; margin-bottom:10px; }
+.admin-card .meta{ color:var(--slate-400); font-size:0.85rem; }
+.admin-card .count{ font-family:var(--mono); font-size:1.4rem; color:var(--amber-400); margin-top:8px; }
+.admin-card.closed{ opacity:0.5; }
+.admin-card.empty-count .count{ color:var(--slate-400); font-size:1rem; }
+
+/* ---------- Dashboard bookings table (reuses .booking-table from style.css) ---------- */
+.admin-toolbar{ display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+.admin-toolbar input, .admin-toolbar select{
+  background:var(--navy-950); border:1px solid var(--navy-600); border-radius:8px; padding:9px 12px; color:var(--ink); font-size:0.88rem;
+}
+.admin-toolbar input{ flex:1; min-width:180px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .admin-header-inner{ flex-direction:column; align-items:flex-start; }
+  .admin-nav{ width:100%; }
+}
+@media (max-width:640px){
+  .admin-main{ padding:20px 16px 50px; }
+  .admin-card-grid{ grid-template-columns:1fr; }
+  .booking-table{ font-size:0.8rem; }
+}

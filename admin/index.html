@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Drive — Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="stylesheet" href="../styles/style.css">
+<link rel="stylesheet" href="../styles/admin.css">
+</head>
+<body class="admin-body">
+
+<div id="app-loading"><img src="../images/logo.png" class="loading-logo" alt="Big Drive"><div class="spinner"></div><p>Loading Big Drive Admin…</p></div>
+<div id="app-error">
+  <h3>Couldn't load Big Drive Admin</h3>
+  <p>There was a problem connecting to storage. Check your connection and try again.</p>
+  <button class="btn-primary" onclick="initAdminApp()">Retry</button>
+</div>
+<div class="banner" id="storage-banner">Running in limited mode — some data may not sync across devices right now.</div>
+
+<!-- ============================================================
+     PIN GATE
+     ============================================================ -->
+<div id="admin-gate" class="admin-gate">
+  <div class="admin-gate-card">
+    <img src="../images/logo.png" alt="Big Drive" class="admin-gate-logo">
+    <h1>Big Drive Admin</h1>
+    <p class="settings-hint">Enter the admin PIN to continue.</p>
+    <input id="admin-pin-input" type="password" placeholder="PIN" autocomplete="off">
+    <div class="error-text" id="admin-pin-error">Incorrect PIN.</div>
+    <button class="btn-block" onclick="checkAdminPin()">Enter</button>
+    <a href="/" class="admin-back-link">← Back to Big Drive</a>
+  </div>
+</div>
+
+<!-- ============================================================
+     DASHBOARD (hidden until PIN accepted)
+     ============================================================ -->
+<div id="admin-dashboard" style="display:none;">
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="/" class="admin-brand">
+        <img src="../images/logo.png" alt="Big Drive" class="logo-mark">
+        <div class="logo-text">
+          <span class="logo-wordmark">BIG DRIVE</span>
+          <span class="logo-tagline">Admin dashboard</span>
+        </div>
+      </a>
+      <nav class="admin-nav">
+        <button class="admin-nav-btn active" data-view="board" onclick="goToView('board')">Departure Board</button>
+        <button class="admin-nav-btn" data-view="manage-routes" onclick="goToView('manage-routes')">Manage Routes</button>
+        <button class="admin-nav-btn" data-view="settings" onclick="goToView('settings')">Settings</button>
+      </nav>
+      <span id="pending-badge-admin" class="pending-badge-admin" style="display:none;"></span>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="admin-breadcrumb" id="admin-breadcrumb"></div>
+    <div id="admin-content"></div>
+  </main>
+</div>
+
+<!-- ============================================================
+     TRIP DETAILS MODAL (shared look with customer site's modal styles)
+     ============================================================ -->
+<div class="modal-backdrop" id="trip-modal">
+  <div class="modal">
+    <div class="modal-head"><h3>Trip details — <span id="trip-modal-ref"></span></h3><button class="modal-close" onclick="closeTripDetails()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Driver name</label><input id="trip-driver"></div>
+      <div class="field-row">
+        <div class="field"><label>Bus number</label><input id="trip-bus"></div>
+        <div class="field"><label>Seat number</label><input id="trip-seat"></div>
+      </div>
+      <div class="field"><label>Pickup location</label><input id="trip-pickup"></div>
+      <button class="btn-block" onclick="saveTripDetails()">Save trip details</button>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/shared.js"></script>
+<script src="../scripts/admin.js"></script>
+</body>
+</html>

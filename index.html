@@ -38,7 +38,7 @@
       <img src="images/logo.png" class="logo-mark" alt="Big Drive">
       <div class="logo-text">
         <span class="logo-wordmark">BIG DRIVE</span>
-        <span class="logo-tagline">Verified by JVS</span>
+        <span class="logo-tagline">Powered by Jerla</span>
       </div>
     </div>
     <button class="nav-cta" onclick="scrollToRoutes()">Book a seat</button>
@@ -109,7 +109,7 @@
 <footer>
   <div class="wrap footer-row">
     <div style="display:flex;align-items:center;gap:8px;"><img src="images/logo.png" alt="" style="width:22px;height:22px;">© <span id="year"></span> Big Drive. Safe travels, every time.</div>
-    <button class="settings-btn" onclick="openAdminGate()">Admin <span id="pending-badge" style="display:none;"></span></button>
+    <a class="settings-btn" href="/admin/">Admin</a>
   </div>
 </footer>
 
@@ -121,44 +121,7 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="admin-gate-modal">
-  <div class="modal">
-    <div class="modal-head"><h3>Admin sign-in</h3><button class="modal-close" onclick="closeAdminGate()">✕</button></div>
-    <div class="modal-body">
-      <div class="field"><label>PIN</label><input id="admin-pin-input" type="password" placeholder="Enter admin PIN"></div>
-      <div class="error-text" id="admin-pin-error">Incorrect PIN.</div>
-      <button class="btn-block" onclick="checkAdminPin()">Enter</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="admin-modal">
-  <div class="modal wide">
-    <div class="modal-head"><h3 style="display:flex;align-items:center;gap:10px;"><img src="images/logo.png" alt="" style="width:24px;height:24px;">Admin dashboard</h3><button class="modal-close" onclick="closeAdmin()">✕</button></div>
-    <div class="admin-tabs">
-      <button class="admin-tab active" id="tab-bookings" onclick="switchAdminTab('bookings')">Bookings</button>
-      <button class="admin-tab" id="tab-routes" onclick="switchAdminTab('routes')">Routes</button>
-      <button class="admin-tab" id="tab-settings" onclick="switchAdminTab('settings')">Settings</button>
-    </div>
-    <div class="modal-body" id="admin-body"></div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="trip-modal">
-  <div class="modal">
-    <div class="modal-head"><h3>Trip details — <span id="trip-modal-ref"></span></h3><button class="modal-close" onclick="closeTripDetails()">✕</button></div>
-    <div class="modal-body">
-      <div class="field"><label>Driver name</label><input id="trip-driver"></div>
-      <div class="field-row">
-        <div class="field"><label>Bus number</label><input id="trip-bus"></div>
-        <div class="field"><label>Seat number</label><input id="trip-seat"></div>
-      </div>
-      <div class="field"><label>Pickup location</label><input id="trip-pickup"></div>
-      <button class="btn-block" onclick="saveTripDetails()">Save trip details</button>
-    </div>
-  </div>
-</div>
-
+<script src="scripts/shared.js"></script>
 <script src="scripts/script.js"></script>
 </body>
 </html>

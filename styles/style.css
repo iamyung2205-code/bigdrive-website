@@ -73,7 +73,7 @@
   .logo-mark{width:42px;height:42px;flex:none;object-fit:contain;}
   .logo-text{display:flex;flex-direction:column;line-height:1.15;}
   .logo-wordmark{font-family:var(--display);font-weight:700;font-size:1.05rem;letter-spacing:0.02em;color:var(--ink);}
-  .logo-tagline{font-family:var(--mono);font-size:0.62rem;color:var(--amber-400);letter-spacing:0.03em;}
+  .logo-tagline{font-family:var(--mono);font-size:0.6rem;color:var(--slate-400);letter-spacing:0.03em;}
   .nav-cta{
     background:var(--amber-400);color:var(--navy-950);border:none;
     padding:10px 20px;border-radius:100px;font-weight:600;font-size:0.9rem;
@@ -249,10 +249,7 @@
   .ticket-logo{width:22px;height:22px;object-fit:contain;}
   .ticket-brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
   .ticket-brand-row .ticket-brand{margin-bottom:0;}
-  .jvs-badge{
-    font-family:var(--mono);font-size:0.62rem;letter-spacing:0.02em;color:#7a5a12;
-    background:#f0d9a8;padding:3px 8px;border-radius:100px;white-space:nowrap;
-  }
+  .jvs-credit{font-family:var(--mono);font-size:0.62rem;color:#8a8570;letter-spacing:0.02em;white-space:nowrap;}
   .ticket-route{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
   .ticket-route .city{font-family:var(--display);font-weight:700;font-size:1.3rem;}
   .ticket-route .arrow{color:var(--coral-500);font-size:1.1rem;}
