@@ -90,8 +90,8 @@ function renderBoardView(){
         const c = routeCities(r);
         const pending = BOOKINGS.filter(b => b.routeId === r.id && b.status === 'pending').length;
         return `
-        <div class="admin-card" onclick="showDatesFor('${r.id}')">
-          <div class="route-line-mini">${c.from} → ${c.to}</div>
+        <div class="admin-card ${r.active===false ? 'closed' : ''}" onclick="showDatesFor('${r.id}')">
+          <div class="route-line-mini">${c.from} → ${c.to} ${r.active===false ? '<span class="badge cancelled" style="margin-left:6px;">Inactive</span>' : ''}</div>
           <div class="meta">₦${r.price.toLocaleString()} · ${r.duration} · ${r.seatCapacity || 14} seats/departure</div>
           ${pending > 0 ? `<div class="count">🔔 ${pending} pending</div>` : `<div class="count" style="font-size:0.85rem;color:var(--slate-400);">No pending bookings</div>`}
         </div>`;
@@ -306,6 +306,49 @@ async function saveTripDetails(){
 document.getElementById('trip-modal').addEventListener('click', e => { if(e.target.id==='trip-modal') closeTripDetails(); });
 
 /* ---------- Manage Routes ---------- */
+let routeEditId = null;
+function openRouteEditor(routeId){
+  const r = CONFIG.routes.find(x => x.id === routeId);
+  if(!r) return;
+  routeEditId = routeId;
+  const c = routeCities(r);
+  document.getElementById('route-edit-direction').textContent = `Currently displayed as: ${c.from} → ${c.to}`;
+  document.getElementById('edit-route-city').value = r.city;
+  document.getElementById('edit-route-price').value = r.price;
+  document.getElementById('edit-route-capacity').value = r.seatCapacity || 14;
+  document.getElementById('edit-route-duration').value = r.duration;
+  document.getElementById('edit-route-times').value = (r.times || []).join(', ');
+  document.getElementById('edit-route-active').value = r.active === false ? 'false' : 'true';
+  document.getElementById('route-edit-modal').classList.add('open');
+}
+function closeRouteEditor(){ document.getElementById('route-edit-modal').classList.remove('open'); routeEditId = null; }
+async function saveRouteEdit(){
+  const r = CONFIG.routes.find(x => x.id === routeEditId);
+  if(!r) return;
+  const city = document.getElementById('edit-route-city').value.trim();
+  const price = parseInt(document.getElementById('edit-route-price').value, 10);
+  const capacity = Math.max(1, parseInt(document.getElementById('edit-route-capacity').value, 10) || 14);
+  const duration = document.getElementById('edit-route-duration').value.trim();
+  const times = document.getElementById('edit-route-times').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const active = document.getElementById('edit-route-active').value === 'true';
+  if(!city || !price || !times.length){ alert('Please fill in city, price and at least one time.'); return; }
+
+  // Mutate the existing route object in place — id is never reassigned, so every
+  // booking that stores this route's id keeps pointing at the same route.
+  r.city = city;
+  r.price = price;
+  r.seatCapacity = capacity;
+  r.duration = duration || '—';
+  r.times = times;
+  r.active = active;
+
+  const ok = await persistConfig();
+  if(!ok){ alert('Could not save — the write to the server failed. Please try again.'); return; }
+  closeRouteEditor();
+  renderRouteAdminList();
+}
+document.getElementById('route-edit-modal').addEventListener('click', e => { if(e.target.id==='route-edit-modal') closeRouteEditor(); });
+
 function renderManageRoutesView(){
   const el = document.getElementById('admin-content');
   el.innerHTML = `
@@ -349,7 +392,11 @@ function renderRouteAdminList(){
     return `
     <div class="route-admin-row" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="flex:1;">${c.from} → ${c.to} · ₦${r.price.toLocaleString()} · ${r.times.join(', ')} · <input type="number" value="${r.seatCapacity||14}" style="width:52px;background:var(--navy-950);border:1px solid var(--navy-600);color:var(--ink);border-radius:6px;padding:2px 6px;" onchange="updateCapacity('${r.id}', this.value)"> seats</span>
+        <span style="flex:1;">
+          ${c.from} → ${c.to} · ₦${r.price.toLocaleString()} · ${r.times.join(', ')} · <input type="number" value="${r.seatCapacity||14}" style="width:52px;background:var(--navy-950);border:1px solid var(--navy-600);color:var(--ink);border-radius:6px;padding:2px 6px;" onchange="updateCapacity('${r.id}', this.value)"> seats
+          <span class="badge ${r.active===false ? 'cancelled' : 'confirmed'}" style="margin-left:8px;">${r.active===false ? 'Inactive' : 'Active'}</span>
+        </span>
+        <button class="refresh-btn" onclick="openRouteEditor('${r.id}')">Edit</button>
         <button class="refresh-btn" onclick="toggleRouteDates('${r.id}')">${expandedRouteId===r.id ? 'Hide dates' : `Dates (${dates.filter(d=>!d.closed).length})`}</button>
         <button class="del-btn" onclick="removeRoute('${r.id}')">Remove</button>
       </div>
@@ -416,7 +463,7 @@ async function addRoute(){
   const times = document.getElementById('new-route-times').value.split(',').map(t=>t.trim()).filter(Boolean);
   const seatCapacity = Math.max(1, parseInt(document.getElementById('new-route-capacity').value, 10) || 14);
   if(!city || !price || !times.length){ alert('Please fill in city, price and at least one time.'); return; }
-  CONFIG.routes.push({ id: 'r' + Date.now(), city, price, duration: duration || '—', times, seatCapacity, availableDates: seedDates(5) });
+  CONFIG.routes.push({ id: 'r' + Date.now(), city, price, duration: duration || '—', times, seatCapacity, availableDates: seedDates(5), active: true });
   await persistConfig();
   ['new-route-city','new-route-price','new-route-duration','new-route-times'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('new-route-capacity').value = '14';

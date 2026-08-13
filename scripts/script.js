@@ -28,16 +28,17 @@ initApp();
 
 function renderTicker(){
   const el = document.getElementById('ticker-track');
-  const items = CONFIG.routes.map(r => { const c = routeCities(r); return `<span><b>${c.from}</b> → ${c.to} · ₦${r.price.toLocaleString()} · ${r.duration}</span>`; }).join('');
+  const items = CONFIG.routes.filter(r => r.active !== false).map(r => { const c = routeCities(r); return `<span><b>${c.from}</b> → ${c.to} · ₦${r.price.toLocaleString()} · ${r.duration}</span>`; }).join('');
   el.innerHTML = items + items;
 }
 function renderRouteBoard(){
   const board = document.getElementById('route-board');
-  if(!CONFIG.routes.length){
+  const visibleRoutes = CONFIG.routes.filter(r => r.active !== false);
+  if(!visibleRoutes.length){
     board.innerHTML = `<div class="empty-board">No routes yet. Add one from Admin → Routes.</div>`;
     return;
   }
-  board.innerHTML = CONFIG.routes.map(r => { const c = routeCities(r); return `
+  board.innerHTML = visibleRoutes.map(r => { const c = routeCities(r); return `
     <div class="route-row" onclick="startBooking('${r.id}')">
       <div class="route-line"><span class="route-city">${c.from}</span><span class="route-track"></span><span class="route-city">${c.to}</span></div>
       <div class="route-meta"><span>${r.duration}</span><span class="route-price">₦${r.price.toLocaleString()}</span></div>
@@ -46,6 +47,8 @@ function renderRouteBoard(){
 }
 function scrollToRoutes(){ document.getElementById('routes').scrollIntoView({behavior:'smooth'}); }
 function scrollToTrack(){ document.getElementById('track').scrollIntoView({behavior:'smooth'}); }
+function toggleMobileNav(){ document.getElementById('nav-links').classList.toggle('open'); }
+function closeMobileNav(){ document.getElementById('nav-links').classList.remove('open'); }
 
 function startBooking(routeId){
   const route = CONFIG.routes.find(r => r.id === routeId);
@@ -314,8 +317,27 @@ async function trackBooking(){
 }
 
 /* Scroll-reveal: fade/slide in cards and section heads as they enter view */
+/* Subtle scroll parallax for the hero's story illustrations — purely decorative,
+   touches nothing booking-related. Applied to the container (not the van/icons
+   themselves, since those already have their own CSS float animations on
+   `transform` — animating both on the same element would fight each other).
+   Skipped entirely for reduced-motion users. */
+(function setupParallax(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const layer = document.querySelector('.hero-emblem');
+  if(!layer) return;
+  let ticking = false;
+  function apply(){
+    layer.style.transform = `translateY(${window.scrollY * 0.05}px)`;
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if(!ticking){ requestAnimationFrame(apply); ticking = true; }
+  }, { passive: true });
+})();
+
 (function setupScrollReveal(){
-  const targets = document.querySelectorAll('.step-card, .trust-card, .section-head, .track-box');
+  const targets = document.querySelectorAll('.step-card, .trust-point, .section-head, .track-box, .editorial-copy, .editorial-visual, .faq-item');
   targets.forEach(el => el.classList.add('reveal'));
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => { if(entry.isIntersecting){ entry.target.classList.add('in'); io.unobserve(entry.target); } });

@@ -80,6 +80,37 @@
   </div>
 </div>
 
+<!-- ============================================================
+     ROUTE EDITOR MODAL — edits an existing route in place.
+     The route's id is never touched here, so bookings referencing
+     it stay valid.
+     ============================================================ -->
+<div class="modal-backdrop" id="route-edit-modal">
+  <div class="modal">
+    <div class="modal-head"><h3>Edit route</h3><button class="modal-close" onclick="closeRouteEditor()">✕</button></div>
+    <div class="modal-body">
+      <p class="settings-hint" id="route-edit-direction"></p>
+      <div class="field"><label>City (the other end of the route — direction is set by the season toggle)</label><input id="edit-route-city"></div>
+      <div class="field-row">
+        <div class="field"><label>Price (₦)</label><input id="edit-route-price" type="number"></div>
+        <div class="field"><label>Seat capacity</label><input id="edit-route-capacity" type="number"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Duration</label><input id="edit-route-duration"></div>
+        <div class="field"><label>Times (comma separated, 24h)</label><input id="edit-route-times"></div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="edit-route-active">
+          <option value="true">Active — bookable by students</option>
+          <option value="false">Inactive — hidden from students, kept for existing bookings</option>
+        </select>
+      </div>
+      <button class="btn-block" onclick="saveRouteEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <script src="../scripts/shared.js"></script>
 <script src="../scripts/admin.js"></script>
 </body>

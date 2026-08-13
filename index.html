@@ -22,6 +22,7 @@
     <circle class="bg-node" cx="480" cy="280" r="4"/>
   </svg>
 </div>
+<div class="grain" aria-hidden="true"></div>
 
 <div id="app-loading"><img src="images/logo.png" class="loading-logo" alt="Big Drive"><div class="spinner"></div><p>Loading Big Drive…</p></div>
 <div id="app-error">
@@ -41,20 +42,56 @@
         <span class="logo-tagline">Powered by Jerla</span>
       </div>
     </div>
-    <button class="nav-cta" onclick="scrollToRoutes()">Book a seat</button>
+    <nav class="nav-links" id="nav-links">
+      <a href="#" onclick="closeMobileNav()">Home</a>
+      <a href="#routes" onclick="closeMobileNav()">Routes</a>
+      <a href="#how" onclick="closeMobileNav()">How It Works</a>
+      <a href="#faq" onclick="closeMobileNav()">FAQs</a>
+    </nav>
+    <div class="nav-right">
+      <button class="nav-cta" onclick="scrollToRoutes()">Book a ride</button>
+      <button class="nav-toggle" onclick="toggleMobileNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
   </div>
 </header>
 
 <main>
   <section class="hero">
     <div class="hero-bg"></div>
-    <div class="wrap">
-      <div class="hero-eyebrow"><span class="dot"></span> Booking now for next semester</div>
-      <h1>Get home <span>safe</span>, get back <span>on time</span>.</h1>
-      <p>Big Drive is intercity transport built for students — predictable pricing, real luggage handling, and a seat you booked in advance, not a scramble at the park.</p>
-      <div class="hero-actions">
-        <button class="btn-primary" onclick="scrollToRoutes()">Find your route →</button>
-        <button class="btn-ghost" onclick="scrollToTrack()">Track a booking</button>
+    <div class="wrap hero-wrap">
+      <div class="hero-copy">
+        <div class="hero-eyebrow"><span class="dot"></span> Booking now for next semester</div>
+        <h1>Go home.<br>Come back <span>ready</span>.</h1>
+        <p>Reliable student rides between campus and home — made simple.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="scrollToRoutes()">Book a ride →</button>
+          <button class="btn-ghost" onclick="scrollToRoutes()">Explore routes</button>
+        </div>
+      </div>
+      <div class="hero-emblem" aria-hidden="true">
+        <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="var(--amber-300)" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="var(--amber-300)" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="160" cy="160" r="90" fill="url(#hubGlow)"/>
+          <g class="emblem-spokes" fill="none" stroke="var(--amber-400)" stroke-width="1.6" opacity="0.75">
+            <path class="emblem-path" d="M160,160 C120,120 70,90 30,60" stroke-dasharray="3 7"/>
+            <path class="emblem-path" d="M160,160 C210,110 260,80 296,40" stroke-dasharray="3 7"/>
+            <path class="emblem-path" d="M160,160 C110,210 70,250 34,292" stroke-dasharray="3 7"/>
+            <path class="emblem-path" d="M160,160 C215,205 255,240 292,284" stroke-dasharray="3 7"/>
+          </g>
+          <g class="emblem-nodes" fill="var(--amber-300)">
+            <circle cx="30" cy="60" r="4"/>
+            <circle cx="296" cy="40" r="4"/>
+            <circle cx="34" cy="292" r="4"/>
+            <circle cx="292" cy="284" r="4"/>
+          </g>
+          <circle cx="160" cy="160" r="38" fill="var(--navy-800)" stroke="var(--amber-400)" stroke-width="2"/>
+          <text x="160" y="165" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--amber-300)" letter-spacing="1">ABUAD</text>
+        </svg>
       </div>
     </div>
     <div class="ticker">
@@ -62,31 +99,47 @@
     </div>
   </section>
 
+
+  <section class="section-light">
+    <div class="wrap editorial">
+      <div class="editorial-visual editorial-abstract" aria-hidden="true">
+        <div class="abstract-ring"></div>
+        <div class="abstract-ring abstract-ring-2"></div>
+      </div>
+      <div class="editorial-copy">
+        <h2>Home is closer than you think.</h2>
+        <p>Between campus and the cities that matter most, Big Drive makes getting home easier — book a seat in minutes, travel with your bags sorted, and land ready for the holiday or the semester ahead.</p>
+      </div>
+    </div>
+  </section>
+
   <section id="how">
     <div class="wrap">
-      <div class="section-head"><div><div class="section-tag">How it works</div><h2>Three steps, no park touts</h2></div></div>
+      <div class="section-head"><div><div class="section-tag">How it works</div><h2>Your journey, sorted.</h2></div></div>
       <div class="steps">
-        <div class="step-card"><div class="step-num">01</div><h3>Pick your route &amp; time</h3><p>Choose from the departure board below and lock in a seat before the day of travel.</p></div>
-        <div class="step-card"><div class="step-num">02</div><h3>Pay by transfer</h3><p>Send payment straight to the Big Drive account with your booking reference as the narration.</p></div>
-        <div class="step-card"><div class="step-num">03</div><h3>Show your ticket</h3><p>Your booking is saved and sent to Big Drive on WhatsApp instantly, and you get a ticket stub to show the driver.</p></div>
+        <div class="step-card"><div class="step-num">01</div><h3>Pick your route</h3><p>Choose where you're heading and find a departure that works for you.</p></div>
+        <div class="step-card"><div class="step-num">02</div><h3>Reserve your seat</h3><p>Enter your details, choose your luggage option and secure your spot.</p></div>
+        <div class="step-card"><div class="step-num">03</div><h3>Show up &amp; go</h3><p>Get your ticket, arrive on time and let Big Drive handle the road.</p></div>
       </div>
     </div>
   </section>
 
   <section id="routes">
     <div class="wrap">
-      <div class="section-head"><div><div class="section-tag">Departure board</div><h2>Where are you headed?</h2></div></div>
+      <div class="section-head"><div><div class="section-tag">Popular routes</div><h2>Where are you headed?</h2><p style="margin:6px 0 0;">Your route home, without the stress.</p></div></div>
       <div class="board" id="route-board"></div>
     </div>
   </section>
 
-  <section id="trust">
+  <section id="trust" class="section-light">
     <div class="wrap">
-      <div class="trust-grid">
-        <div class="trust-card"><div class="n">2 free</div><div class="l">bags per seat</div></div>
-        <div class="trust-card"><div class="n">100%</div><div class="l">booked in advance</div></div>
-        <div class="trust-card"><div class="n">Fixed</div><div class="l">price, no haggling</div></div>
-        <div class="trust-card"><div class="n">Live</div><div class="l">status, any device</div></div>
+      <div class="section-head"><div><div class="section-tag">Why Big Drive</div><h2>Built for students.</h2><p style="margin:6px 0 0;">We understand the rush of resumption, the long trips home and everything in between — that's why Big Drive is designed around one thing: making student travel simpler.</p></div></div>
+      <div class="trust-points">
+        <div class="trust-point"><span class="check">✓</span><div><h4>Clear pricing</h4><p>No haggling, no surprise charges — the price you see is what you pay.</p></div></div>
+        <div class="trust-point"><span class="check">✓</span><div><h4>Verified trip details</h4><p>Every booking is checked and confirmed before your travel date.</p></div></div>
+        <div class="trust-point"><span class="check">✓</span><div><h4>Student-focused service</h4><p>Built specifically around campus schedules and resumption rushes.</p></div></div>
+        <div class="trust-point"><span class="check">✓</span><div><h4>Simple booking</h4><p>Pick a route, reserve a seat, and you're done — in minutes.</p></div></div>
+        <div class="trust-point"><span class="check">✓</span><div><h4>Digital ticketing</h4><p>Your ticket and QR code live on your phone, ready to show your driver.</p></div></div>
       </div>
     </div>
   </section>
@@ -104,12 +157,47 @@
       </div>
     </div>
   </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-head"><div><div class="section-tag">FAQs</div><h2>Good to know</h2></div></div>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>How do I book a seat?</summary>
+          <p>Pick a route from the departure board, choose your travel date and time, add any extra luggage, and enter your details. You'll get a booking reference and payment instructions.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I confirm my payment went through?</summary>
+          <p>After you transfer and tap "I've sent the transfer," your booking is saved as pending. Big Drive verifies the payment against your reference and updates your ticket to confirmed — you can check the status anytime under "Track your booking."</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I change my travel date after booking?</summary>
+          <p>Reach out to Big Drive directly on WhatsApp with your booking reference and we'll help sort out any changes.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How much luggage can I bring?</summary>
+          <p>Two free bags per passenger are included. Extra or fragile items can be added for a small fee during booking.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <div class="wrap">
+      <h2>Ready to go?</h2>
+      <p>Your next journey starts here.</p>
+      <button class="btn-primary" onclick="scrollToRoutes()">Book your ride</button>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div class="wrap footer-row">
     <div style="display:flex;align-items:center;gap:8px;"><img src="images/logo.png" alt="" style="width:22px;height:22px;">© <span id="year"></span> Big Drive. Safe travels, every time.</div>
-    <a class="settings-btn" href="/admin/">Admin</a>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <a class="settings-btn" href="#track">Track a booking</a>
+      <a class="settings-btn" href="/admin/">Admin</a>
+    </div>
   </div>
 </footer>
 

@@ -25,10 +25,10 @@ const DEFAULT_CONFIG = {
   // Durations sourced from real road-distance data for Ado-Ekiti (ABUAD's location). Prices are placeholders.
   // availableDates are admin-controlled — customers only ever see dates the admin has opened.
   routes: [
-    { id: "r1", city: "Lagos", price: 8500, duration: "4h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) },
-    { id: "r2", city: "Benin City", price: 6000, duration: "3h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) },
-    { id: "r3", city: "Warri", price: 9000, duration: "4h 45m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) },
-    { id: "r4", city: "Abuja", price: 12000, duration: "6h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5) }
+    { id: "r1", city: "Lagos", price: 8500, duration: "4h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5), active: true },
+    { id: "r2", city: "Benin City", price: 6000, duration: "3h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5), active: true },
+    { id: "r3", city: "Warri", price: 9000, duration: "4h 45m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5), active: true },
+    { id: "r4", city: "Abuja", price: 12000, duration: "6h 30m", times: ["07:00"], seatCapacity: 14, availableDates: seedDates(5), active: true }
   ],
   luggageOptions: [
     { id: "l1", label: "Extra bag (beyond 2 free bags per passenger)", price: 10000 },
@@ -120,6 +120,7 @@ function migrateConfig(cfg){
     cfg.routes.forEach(r => {
       if(!r.seatCapacity) r.seatCapacity = 14;
       if(!r.availableDates) r.availableDates = seedDates(5);
+      if(r.active === undefined) r.active = true;
     });
   }
   return cfg;
