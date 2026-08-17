@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 
 <link rel="stylesheet" href="styles/style.css">
+<link rel="stylesheet" href="styles/hero-route-interaction.css">
 </head>
 <body>
 
@@ -68,30 +69,62 @@
           <button class="btn-ghost" onclick="scrollToTrack()">Track Your Booking →</button>
         </div>
       </div>
-      <div class="hero-emblem" aria-hidden="true">
-        <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="var(--amber-300)" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="var(--amber-300)" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <circle cx="160" cy="160" r="90" fill="url(#hubGlow)"/>
-          <g class="emblem-spokes" fill="none" stroke="var(--amber-400)" stroke-width="1.6" opacity="0.75">
-            <path class="emblem-path" d="M160,160 C120,120 70,90 30,60" stroke-dasharray="3 7"/>
-            <path class="emblem-path" d="M160,160 C210,110 260,80 296,40" stroke-dasharray="3 7"/>
-            <path class="emblem-path" d="M160,160 C110,210 70,250 34,292" stroke-dasharray="3 7"/>
-            <path class="emblem-path" d="M160,160 C215,205 255,240 292,284" stroke-dasharray="3 7"/>
-          </g>
-          <g class="emblem-nodes" fill="var(--amber-300)">
-            <circle cx="30" cy="60" r="4"/>
-            <circle cx="296" cy="40" r="4"/>
-            <circle cx="34" cy="292" r="4"/>
-            <circle cx="292" cy="284" r="4"/>
-          </g>
-          <circle cx="160" cy="160" r="38" fill="var(--navy-800)" stroke="var(--amber-400)" stroke-width="2"/>
-          <text x="160" y="165" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--amber-300)" letter-spacing="1">ABUAD</text>
-        </svg>
+      <div class="hero-emblem">
+        <div class="hero-emblem-inner">
+          <svg aria-hidden="true" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="var(--amber-300)" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="var(--amber-300)" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="160" cy="160" r="90" fill="url(#hubGlow)"/>
+            <g class="emblem-spokes" fill="none" stroke="var(--amber-400)" stroke-width="1.6" opacity="0.75">
+              <path class="emblem-path" d="M160,160 C120,120 70,90 30,60" stroke-dasharray="3 7"/>
+              <path class="emblem-path" d="M160,160 C210,110 260,80 296,40" stroke-dasharray="3 7"/>
+              <path class="emblem-path" d="M160,160 C110,210 70,250 34,292" stroke-dasharray="3 7"/>
+              <path class="emblem-path" d="M160,160 C215,205 255,240 292,284" stroke-dasharray="3 7"/>
+            </g>
+            <g class="emblem-nodes" fill="var(--amber-300)">
+              <circle cx="30" cy="60" r="4"/>
+              <circle cx="296" cy="40" r="4"/>
+              <circle cx="34" cy="292" r="4"/>
+              <circle cx="292" cy="284" r="4"/>
+            </g>
+            <circle cx="160" cy="160" r="38" fill="var(--navy-800)" stroke="var(--amber-400)" stroke-width="2"/>
+            <text x="160" y="165" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--amber-300)" letter-spacing="1">ABUAD</text>
+          </svg>
+
+          <!-- Interactive layer: reuses the spoke paths/nodes above as the "route" —
+               does not duplicate or alter the SVG itself. See scripts/hero-route-interaction.js -->
+          <div class="hero-route-interaction" id="hero-route-interaction">
+            <button type="button" class="hero-waypoint" data-wp="1" data-path-index="0" style="--wp-x:9.375%;--wp-y:18.75%;" aria-label="Step 1, pick your route: choose where you're going home from">
+              <span class="hero-waypoint-dot"></span>
+              <span class="hero-waypoint-card" role="status">
+                <span class="hero-waypoint-num">01</span>
+                <span class="hero-waypoint-title">Pick your route</span>
+                <span class="hero-waypoint-text" data-wp-dynamic="routes">Choose where you're going home from.</span>
+              </span>
+            </button>
+            <button type="button" class="hero-waypoint" data-wp="2" data-path-index="1" style="--wp-x:92.5%;--wp-y:12.5%;" aria-label="Step 2, book your seat: choose your departure and secure your seat">
+              <span class="hero-waypoint-dot"></span>
+              <span class="hero-waypoint-card" role="status">
+                <span class="hero-waypoint-num">02</span>
+                <span class="hero-waypoint-title">Book your seat</span>
+                <span class="hero-waypoint-text">Choose your departure and secure your seat.</span>
+              </span>
+            </button>
+            <button type="button" class="hero-waypoint" data-wp="3" data-path-index="3" style="--wp-x:91.25%;--wp-y:88.75%;" aria-label="Step 3, ride home: relax, we've got the drive">
+              <span class="hero-waypoint-dot"></span>
+              <span class="hero-waypoint-card" role="status">
+                <span class="hero-waypoint-num">03</span>
+                <span class="hero-waypoint-title">Ride home</span>
+                <span class="hero-waypoint-text">Relax. We've got the drive.</span>
+              </span>
+            </button>
+            <div class="hero-vehicle is-idle" id="hero-vehicle" aria-hidden="true"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="ticker">
@@ -211,5 +244,6 @@
 
 <script src="scripts/shared.js"></script>
 <script src="scripts/script.js"></script>
+<script src="scripts/hero-route-interaction.js" defer></script>
 </body>
 </html>

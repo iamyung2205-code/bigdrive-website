@@ -1,0 +1,139 @@
+/* ============================================================
+   HERO ROUTE INTERACTION
+   Isolated enhancement layer for the existing hero emblem
+   (the route-network SVG in index.html's .hero-emblem block).
+   Adds interactive waypoints + a small travelling marker on
+   top of the existing graphic — does not modify or duplicate
+   any rule already in style.css.
+   ============================================================ */
+
+.hero-emblem-inner{
+  position:relative;
+  width:100%;
+  max-width:340px;
+  aspect-ratio:1/1;
+  margin:0 auto;
+}
+.hero-emblem-inner svg{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+}
+
+.hero-route-interaction{
+  position:absolute; inset:0;
+  pointer-events:none;
+}
+
+.hero-waypoint{
+  position:absolute;
+  left:var(--wp-x); top:var(--wp-y);
+  transform:translate(-50%,-50%);
+  pointer-events:auto;
+  background:none; border:none; padding:10px; margin:-10px;
+  -webkit-tap-highlight-color:transparent;
+}
+.hero-waypoint-dot{
+  display:block; width:10px; height:10px; border-radius:50%;
+  background:var(--amber-400);
+  box-shadow:0 0 0 4px rgba(212,155,39,0.16);
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+.hero-waypoint:hover .hero-waypoint-dot,
+.hero-waypoint:focus-visible .hero-waypoint-dot,
+.hero-waypoint.is-active .hero-waypoint-dot{
+  transform:scale(1.4);
+  box-shadow:0 0 0 8px rgba(212,155,39,0.22);
+}
+.hero-waypoint.is-active .hero-waypoint-dot{
+  animation:heroWpPulse 1.6s ease-in-out infinite;
+}
+@keyframes heroWpPulse{
+  0%,100%{ box-shadow:0 0 0 8px rgba(212,155,39,0.22); }
+  50%{ box-shadow:0 0 0 12px rgba(212,155,39,0.10); }
+}
+
+.hero-waypoint-card{
+  position:absolute; top:calc(100% + 12px); left:50%;
+  transform:translate(-50%,6px);
+  width:180px; max-width:46vw;
+  background:var(--navy-800);
+  border:1px solid rgba(212,155,39,0.5);
+  border-radius:10px;
+  padding:10px 12px;
+  opacity:0; pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+  text-align:left;
+  box-shadow:0 12px 24px rgba(0,0,0,0.35);
+  z-index:2;
+}
+.hero-waypoint.is-active .hero-waypoint-card,
+.hero-waypoint:focus-visible .hero-waypoint-card{
+  opacity:1; transform:translate(-50%,0); pointer-events:auto;
+}
+.hero-waypoint-num{
+  display:block; font-family:var(--mono); font-size:0.7rem; letter-spacing:0.08em;
+  color:var(--amber-400); margin-bottom:2px;
+}
+.hero-waypoint-title{
+  display:block; font-family:var(--display); font-size:0.88rem; font-weight:700;
+  color:var(--ink); margin-bottom:3px;
+}
+.hero-waypoint-text{
+  display:block; font-size:0.78rem; line-height:1.35; color:var(--slate-400);
+}
+
+/* Right-edge waypoints (02, 03): anchor the card to the right so it
+   never overflows past the emblem's edge. */
+.hero-waypoint[data-wp="2"] .hero-waypoint-card,
+.hero-waypoint[data-wp="3"] .hero-waypoint-card{
+  left:auto; right:0; transform:translate(0,6px);
+}
+.hero-waypoint[data-wp="2"].is-active .hero-waypoint-card,
+.hero-waypoint[data-wp="2"]:focus-visible .hero-waypoint-card{
+  transform:translate(0,0);
+}
+
+/* Bottom waypoint (03): flip the card above the dot instead of below,
+   so it never overflows past the bottom of the hero section. */
+.hero-waypoint[data-wp="3"] .hero-waypoint-card{
+  top:auto; bottom:calc(100% + 12px);
+  transform:translate(0,-6px);
+}
+.hero-waypoint[data-wp="3"].is-active .hero-waypoint-card,
+.hero-waypoint[data-wp="3"]:focus-visible .hero-waypoint-card{
+  transform:translate(0,0);
+}
+
+.hero-vehicle{
+  position:absolute; left:50%; top:50%;
+  width:9px; height:7px; border-radius:2px 5px 2px 5px;
+  background:var(--amber-300);
+  box-shadow:0 0 6px rgba(227,186,94,0.55);
+  transform:translate(-50%,-50%);
+  opacity:0.9;
+}
+/* Resting spot: just below the hub circle, clear of the "ABUAD" label. */
+.hero-vehicle.is-idle{ transform:translate(-50%, calc(-50% + 46px)); }
+
+@media (max-width:900px){
+  .hero-emblem-inner{ max-width:240px; }
+  .hero-waypoint-card{ width:150px; padding:8px 10px; }
+  .hero-waypoint-title{ font-size:0.8rem; }
+  .hero-waypoint-text{ font-size:0.72rem; }
+}
+
+/* Touch devices: no hover, tap toggles — slightly larger hit area
+   for finger accuracy, without enlarging the visible dot. */
+@media (hover:none){
+  .hero-waypoint{ padding:14px; margin:-14px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .hero-waypoint-dot,
+  .hero-waypoint-card{ transition:opacity .15s linear; }
+  .hero-waypoint.is-active .hero-waypoint-dot{ animation:none; }
+  /* Vehicle motion is a pure decorative flourish — hide it rather
+     than animate it when the user has asked for reduced motion.
+     Waypoints and their info cards remain fully usable. */
+  .hero-vehicle{ display:none; }
+}
